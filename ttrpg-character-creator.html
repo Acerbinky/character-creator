@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="color-scheme" content="light dark" />
+<link rel="icon" href="data:," />
+<title>TTRPG Character Creator</title>
+<style>
+:root{
+  color-scheme: light dark;
+  --bg:#d9ddd5; --surface:#f2f3ef; --surface-strong:#ffffff; --text:#171716; --dim:#5f615b; --border:#b9bdb4; --accent:#7e2f2a; --copper:#9b5d2d; --shadow:rgba(31,27,22,.14);
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#171816; --surface:#242522; --surface-strong:#2c2e2a; --text:#f0f1ec; --dim:#aeb1a9; --border:#454842; --accent:#d16b61; --copper:#d0945f; --shadow:rgba(0,0,0,.28); }
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg)}
+body{font-family:"Trebuchet MS",ui-sans-serif,sans-serif;color:var(--text)}
+button,input,select,textarea{font:inherit}
+button{-webkit-tap-highlight-color:transparent;min-height:44px}
+.app-shell{min-height:100vh;background:linear-gradient(90deg,transparent 0,transparent calc(100% - 1px),color-mix(in srgb,var(--border) 45%,transparent) 100%),var(--bg)}
+.page{width:min(100%,760px);margin:0 auto;padding:22px 16px calc(32px + env(safe-area-inset-bottom))}
+.eyebrow{margin:0 0 5px;color:var(--accent);font-size:12px;font-weight:800;letter-spacing:.13em;text-transform:uppercase}
+h1,h2,h3{font-family:Georgia,"Times New Roman",serif;margin:0}
+h1{font-size:clamp(34px,10vw,54px);line-height:.98;letter-spacing:-.035em}
+h2{font-size:28px;line-height:1.08}
+h3{font-size:21px;line-height:1.2}
+p{margin:0}
+.lede{margin-top:12px;max-width:520px;color:var(--dim);font-size:16px;line-height:1.55}
+.rule{height:4px;margin:22px 0;background:linear-gradient(90deg,var(--accent) 0 28%,var(--copper) 28% 31%,transparent 31%)}
+.primary-button,.secondary-button,.text-button,.danger-button{min-height:46px;border:0;border-radius:8px;cursor:pointer;font-weight:800}
+.primary-button{padding:0 18px;background:var(--accent);color:#fff;box-shadow:0 5px 16px var(--shadow)}
+.primary-button:disabled{opacity:.55;cursor:wait}
+.secondary-button{padding:0 15px;color:var(--text);background:var(--surface-strong);border:1px solid var(--border)}
+.text-button{min-height:40px;padding:0 8px;color:var(--accent);background:transparent}
+.danger-button{padding:0 14px;color:#fff;background:#8b332d}
+.primary-button:focus-visible,.secondary-button:focus-visible,.text-button:focus-visible,.danger-button:focus-visible,.field input:focus-visible,.field select:focus-visible,.field textarea:focus-visible{outline:3px solid color-mix(in srgb,var(--copper) 50%,transparent);outline-offset:2px}
+.roster-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:24px 0 14px;flex-wrap:wrap}
+.roster-count{color:var(--dim);font-size:14px}
+.empty-state{padding:34px 20px 30px;text-align:center;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.empty-mark{width:76px;height:76px;margin:0 auto 18px;display:grid;place-items:center;border:1px solid var(--copper);transform:rotate(45deg)}
+.empty-mark span{transform:rotate(-45deg);font:700 26px Georgia,serif;color:var(--copper)}
+.empty-state p{margin:9px auto 20px;max-width:390px;color:var(--dim);line-height:1.5}
+.roster-list{display:grid;gap:10px}
+.character-row{display:grid;grid-template-columns:54px 1fr auto;align-items:center;gap:13px;width:100%;padding:14px;text-align:left;color:var(--text);background:var(--surface);border:1px solid var(--border);border-radius:9px;box-shadow:0 3px 10px var(--shadow);cursor:pointer}
+.character-row:focus-visible{outline:3px solid color-mix(in srgb,var(--copper) 50%,transparent);outline-offset:2px}
+.character-sigil{width:50px;height:50px;display:grid;place-items:center;flex:none;background:var(--text);color:var(--surface);border-radius:50% 50% 44% 44%;font:700 22px Georgia,serif}
+.character-main{min-width:0}
+.character-name{display:block;font:700 20px/1.15 Georgia,serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.character-meta{display:block;margin-top:4px;color:var(--dim);font-size:13px;line-height:1.35;overflow-wrap:anywhere}
+.status-dot{width:9px;height:9px;border-radius:99px;background:var(--border)}
+.status-dot.ready{background:var(--accent);box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 14%,transparent)}
+.subpage-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+.back-button{min-height:44px;padding:0;border:0;color:var(--accent);background:transparent;font-weight:800;cursor:pointer}
+.step-label{color:var(--dim);font-size:13px;font-weight:700}
+.progress-track{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin:0 0 24px}
+.progress-segment{height:4px;background:var(--border)}
+.progress-segment.active{background:var(--copper)}
+.form-intro{margin-bottom:22px}
+.form-intro p{margin-top:8px;color:var(--dim);line-height:1.5}
+.form-grid{display:grid;gap:16px}
+.form-grid.two{grid-template-columns:1fr 1fr}
+.field{display:grid;gap:7px}
+.field label{font-size:13px;font-weight:800;color:var(--text)}
+.field input,.field select,.field textarea{width:100%;min-height:48px;padding:11px 12px;color:var(--text);background:var(--surface-strong);border:1px solid var(--border);border-radius:7px}
+.field textarea{min-height:102px;resize:vertical;line-height:1.45}
+.field input::placeholder,.field textarea::placeholder{color:color-mix(in srgb,var(--dim) 75%,transparent)}
+.section-caption{margin:24px 0 10px;font:700 17px Georgia,serif;color:var(--copper)}
+.stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.stat-input{position:relative}
+.stat-input label{position:absolute;left:11px;top:8px;z-index:1;color:var(--dim);font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+.stat-input input{width:100%;height:70px;padding:25px 10px 7px;text-align:center;color:var(--text);background:var(--surface-strong);border:1px solid var(--border);border-radius:7px;font:700 25px Georgia,serif}
+.ready-toggle{display:flex;align-items:center;gap:12px;padding:15px;background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.ready-toggle input{width:22px;height:22px;accent-color:var(--accent);flex:none}
+.ready-toggle label{font-weight:800}
+.ready-toggle small{display:block;margin-top:2px;color:var(--dim);font-weight:400}
+.form-actions{display:flex;justify-content:space-between;gap:10px;margin-top:26px}
+.form-actions .primary-button{flex:1}
+.inline-error{margin-top:12px;color:var(--accent);font-size:14px}
+.sheet-head{padding:22px 0 18px;border-bottom:1px solid var(--border)}
+.sheet-headline{display:flex;gap:15px;align-items:center}
+.sheet-kicker{color:var(--accent);font-size:13px;font-weight:800}
+.sheet-subtitle{margin-top:7px;color:var(--dim)}
+.sheet-actions{display:flex;gap:8px;margin-top:18px}
+.vital-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;margin:20px 0;background:var(--border);border:1px solid var(--border)}
+.vital{padding:13px 8px;text-align:center;background:var(--surface)}
+.vital b{display:block;font:700 24px Georgia,serif}
+.vital span{color:var(--dim);font-size:11px;font-weight:800;text-transform:uppercase}
+.ability-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.ability{padding:12px 6px;text-align:center;background:var(--surface);border:1px solid var(--border)}
+.ability b{display:block;font:700 22px Georgia,serif}
+.ability span{color:var(--dim);font-size:10px;font-weight:800;text-transform:uppercase}
+.story-sections{display:grid;gap:0;margin-top:18px}
+.story-block{padding:16px 0;border-bottom:1px solid var(--border)}
+.story-block h3{margin-bottom:6px;font-size:18px;color:var(--copper)}
+.story-block p{white-space:pre-wrap;color:var(--text);line-height:1.55}
+.muted-value{color:var(--dim)!important;font-style:italic}
+.delete-zone{margin-top:28px;padding-top:18px;border-top:1px solid var(--border)}
+.delete-confirm{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;flex-wrap:wrap}
+.delete-confirm p{color:var(--dim);font-size:14px}
+.delete-confirm>div{display:flex;gap:8px;align-items:center}
+.hidden{display:none!important}
+@media (min-width:640px){.page{padding:38px 28px 48px}.stat-grid{grid-template-columns:repeat(3,1fr)}.character-row{padding:16px 18px}.story-sections{grid-template-columns:1fr 1fr;column-gap:28px}}
+@media (max-width:420px){.form-grid.two{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:no-preference){.character-row,.primary-button,.secondary-button{transition:transform 140ms ease,box-shadow 140ms ease,background 140ms ease}.character-row:active,.primary-button:active,.secondary-button:active{transform:translateY(1px)}}
+</style>
+</head>
+<body>
+<div class="app-shell">
+<main class="page" id="app"></main>
+</div>
+
+<script>
+var STORAGE_KEY = "ttrpg-character-creator:characters:v1";
+var CLASS_IDEAS = ["Warrior","Rogue","Mage","Ranger","Cleric","Bard","Druid","Paladin"];
+var ANCESTRY_IDEAS = ["Human","Elf","Dwarf","Halfling","Orc","Gnome","Tiefling","Dragonborn"];
+var EMPTY = {name:"",playerName:"",pronouns:"",characterClass:"",ancestry:"",background:"",level:1,strength:10,dexterity:10,constitution:10,intelligence:10,wisdom:10,charisma:10,hitPoints:10,armor:10,speed:30,appearance:"",personality:"",bond:"",flaw:"",goal:"",signatureItem:"",backstory:"",notes:"",ready:false};
+
+var screen = "roster";
+var selectedId = null;
+var editingId = null;
+var step = 0;
+var draft = Object.assign({}, EMPTY);
+var formError = "";
+var deleteArmed = false;
+
+function loadCharacters(){
+  try{
+    var raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return [];
+    var parsed = JSON.parse(raw);
+    if(!Array.isArray(parsed)) return [];
+    return parsed;
+  }catch(e){ return []; }
+}
+function saveCharacters(list){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); }catch(e){}
+}
+function getCharacters(){
+  var list = loadCharacters();
+  list.sort(function(a,b){ return new Date(b.updatedAt) - new Date(a.updatedAt); });
+  return list;
+}
+function esc(s){
+  return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; });
+}
+function modifier(score){ var v = Math.floor((score-10)/2); return v>=0 ? "+"+v : String(v); }
+function shortDate(value){ try{ return new Intl.DateTimeFormat(undefined,{month:"short",day:"numeric"}).format(new Date(value)); }catch(e){ return ""; } }
+function newId(){ return Date.now().toString(36) + "-" + Math.random().toString(36).slice(2,9); }
+
+var app = document.getElementById("app");
+
+function render(){
+  if(screen==="form") renderForm();
+  else if(screen==="sheet") renderSheet();
+  else renderRoster();
+}
+
+function renderRoster(){
+  var characters = getCharacters();
+  var html = "";
+  html += '<header><p class="eyebrow">Gather the company</p><h1>Your party</h1><p class="lede">Make each hero together, keep the whole company here, and return when it is time to begin the adventure.</p></header><div class="rule"></div>';
+  html += '<div class="roster-toolbar"><p class="roster-count">' + (characters.length===0 ? "No heroes yet" : characters.length + " " + (characters.length===1?"hero":"heroes") + " saved") + '</p>';
+  if(characters.length>0) html += '<button class="primary-button" type="button" id="btn-create-top">Create a character</button>';
+  html += '</div>';
+  if(characters.length===0){
+    html += '<section class="empty-state"><div class="empty-mark" aria-hidden="true"><span>1</span></div><h2>Every legend starts with a name.</h2><p>Pass the page around the table. Each friend can build a hero, then you can return to this roster when you are ready to play.</p><button class="primary-button" type="button" id="btn-create-first">Create the first character</button></section>';
+  } else {
+    html += '<div class="roster-list" aria-label="Saved characters">';
+    characters.forEach(function(c){
+      var meta = "Level " + c.level + " " + (c.ancestry ? esc(c.ancestry)+" " : "") + esc(c.characterClass) + (c.playerName ? " · " + esc(c.playerName) : "");
+      html += '<button class="character-row" type="button" data-open="'+esc(c.id)+'" aria-label="Open '+esc(c.name)+'"><span class="character-sigil" aria-hidden="true">'+esc((c.name||"?").slice(0,1).toUpperCase())+'</span><span class="character-main"><span class="character-name">'+esc(c.name)+'</span><span class="character-meta">'+meta+'</span></span><span class="status-dot '+(c.ready?"ready":"")+'" aria-label="'+(c.ready?"Ready":"In progress")+'"></span></button>';
+    });
+    html += '</div>';
+  }
+  app.innerHTML = html;
+  var b1=document.getElementById("btn-create-top"); if(b1) b1.addEventListener("click", startCreate);
+  var b2=document.getElementById("btn-create-first"); if(b2) b2.addEventListener("click", startCreate);
+  app.querySelectorAll("[data-open]").forEach(function(el){ el.addEventListener("click", function(){ openSheet(el.getAttribute("data-open")); }); });
+}
+
+function fieldText(id,label,value,placeholder,extra){
+  return '<div class="field"><label for="'+id+'">'+label+'</label><input id="'+id+'" data-field="'+extra+'" value="'+esc(value)+'" placeholder="'+esc(placeholder||"")+'" /></div>';
+}
+function fieldTextarea(id,label,value,placeholder,field){
+  return '<div class="field"><label for="'+id+'">'+label+'</label><textarea id="'+id+'" data-field="'+field+'" placeholder="'+esc(placeholder||"")+'">'+esc(value)+'</textarea></div>';
+}
+
+function renderForm(){
+  var html = "";
+  html += '<div class="subpage-top"><button class="back-button" type="button" id="btn-back-top">← '+(editingId==null?"Party":"Character")+'</button><span class="step-label">Step '+(step+1)+' of 3</span></div>';
+  html += '<div class="progress-track" aria-label="Step '+(step+1)+' of 3">';
+  for(var i=0;i<3;i++) html += '<span class="progress-segment '+(i<=step?"active":"")+'"></span>';
+  html += '</div><form id="char-form" novalidate>';
+
+  if(step===0){
+    html += '<div class="form-intro"><p class="eyebrow">The calling</p><h1>Who answers?</h1><p>Start with the facts the table needs. Anything uncertain can be left open and edited later.</p></div>';
+    html += '<div class="form-grid">';
+    html += '<div class="field"><label for="hero-name">Hero name *</label><input id="hero-name" data-field="name" value="'+esc(draft.name)+'" placeholder="A name whispered in taverns" /></div>';
+    html += '<div class="form-grid two"><div class="field"><label for="player-name">Player</label><input id="player-name" data-field="playerName" value="'+esc(draft.playerName)+'" placeholder="Who plays them?" /></div><div class="field"><label for="pronouns">Pronouns</label><input id="pronouns" data-field="pronouns" value="'+esc(draft.pronouns)+'" placeholder="Optional" /></div></div>';
+    html += '<div class="field"><label for="character-class">Class *</label><input id="character-class" list="class-ideas" data-field="characterClass" value="'+esc(draft.characterClass)+'" placeholder="Choose one or invent your own" /><datalist id="class-ideas">'+CLASS_IDEAS.map(function(x){return '<option value="'+esc(x)+'">';}).join("")+'</datalist></div>';
+    html += '<div class="form-grid two"><div class="field"><label for="ancestry">Ancestry</label><input id="ancestry" list="ancestry-ideas" data-field="ancestry" value="'+esc(draft.ancestry)+'" placeholder="Human, elf, or your own" /><datalist id="ancestry-ideas">'+ANCESTRY_IDEAS.map(function(x){return '<option value="'+esc(x)+'">';}).join("")+'</datalist></div><div class="field"><label for="level">Level</label><input id="level" type="number" min="1" max="20" data-field="level" data-type="number" value="'+esc(draft.level)+'" /></div></div>';
+    html += '<div class="field"><label for="background">Background</label><input id="background" data-field="background" value="'+esc(draft.background)+'" placeholder="Exile, artisan, soldier, scholar…" /></div>';
+    html += fieldTextarea("appearance","Appearance",draft.appearance,"What does everyone notice first?","appearance");
+    html += '</div>';
+  }
+  if(step===1){
+    html += '<div class="form-intro"><p class="eyebrow">The measure</p><h1>What are they made of?</h1><p>Use 10 as an ordinary score. Higher means stronger; lower means a weakness worth playing.</p></div>';
+    html += '<h2 class="section-caption">Abilities</h2><div class="stat-grid">';
+    [["strength","Strength"],["dexterity","Dexterity"],["constitution","Constitution"],["intelligence","Intelligence"],["wisdom","Wisdom"],["charisma","Charisma"]].forEach(function(pair){
+      html += '<div class="stat-input"><label for="'+pair[0]+'">'+pair[1]+'</label><input id="'+pair[0]+'" type="number" min="1" max="30" data-field="'+pair[0]+'" data-type="number" value="'+esc(draft[pair[0]])+'" /></div>';
+    });
+    html += '</div><h2 class="section-caption">At the table</h2><div class="stat-grid">';
+    html += '<div class="stat-input"><label for="hitPoints">Hit points</label><input id="hitPoints" type="number" min="1" max="999" data-field="hitPoints" data-type="number" value="'+esc(draft.hitPoints)+'" /></div>';
+    html += '<div class="stat-input"><label for="armor">Armor</label><input id="armor" type="number" min="0" max="99" data-field="armor" data-type="number" value="'+esc(draft.armor)+'" /></div>';
+    html += '<div class="stat-input"><label for="speed">Speed</label><input id="speed" type="number" min="0" max="999" data-field="speed" data-type="number" value="'+esc(draft.speed)+'" /></div>';
+    html += '</div><div class="field" style="margin-top:18px"><label for="signature-item">Signature item</label><input id="signature-item" data-field="signatureItem" value="'+esc(draft.signatureItem)+'" placeholder="A weapon, relic, instrument, or keepsake" /></div>';
+  }
+  if(step===2){
+    html += '<div class="form-intro"><p class="eyebrow">The spark</p><h1>Why do they venture?</h1><p>A few sharp details give the dungeon master more to work with than a long biography.</p></div><div class="form-grid">';
+    html += fieldTextarea("personality","Personality",draft.personality,"How do they act under pressure?","personality");
+    html += fieldTextarea("goal","Goal",draft.goal,"What do they want badly enough to risk everything?","goal");
+    html += fieldTextarea("bond","Bond",draft.bond,"Who or what will they protect?","bond");
+    html += fieldTextarea("flaw","Flaw",draft.flaw,"What keeps getting them into trouble?","flaw");
+    html += fieldTextarea("backstory","Backstory",draft.backstory,"The short version of how they got here","backstory");
+    html += fieldTextarea("notes","Notes for later",draft.notes,"Secrets, questions, spells, gear, or table notes","notes");
+    html += '<div class="ready-toggle"><input id="ready" type="checkbox" data-field="ready" data-type="checkbox" '+(draft.ready?"checked":"")+' /><label for="ready">Ready for the adventure<small>Mark this when the player is happy with the sheet.</small></label></div>';
+    html += '</div>';
+  }
+
+  if(formError) html += '<p class="inline-error" role="alert">'+esc(formError)+'</p>';
+  html += '<div class="form-actions">';
+  if(step>0) html += '<button class="secondary-button" type="button" id="btn-step-back">Back</button>';
+  html += '<button class="primary-button" type="submit">'+(step<2 ? "Continue" : (editingId==null ? "Save character" : "Save changes"))+'</button>';
+  html += '</div></form>';
+  app.innerHTML = html;
+
+  document.getElementById("btn-back-top").addEventListener("click", function(){
+    syncDraftFromForm();
+    screen = (editingId==null ? "roster" : "sheet");
+    render();
+  });
+  var backBtn = document.getElementById("btn-step-back");
+  if(backBtn) backBtn.addEventListener("click", function(){ syncDraftFromForm(); step = Math.max(0, step-1); formError=""; render(); window.scrollTo({top:0,behavior:"smooth"}); });
+
+  app.querySelectorAll("[data-field]").forEach(function(el){
+    el.addEventListener("input", function(){ syncOne(el); });
+    el.addEventListener("change", function(){ syncOne(el); });
+  });
+  document.getElementById("char-form").addEventListener("submit", function(e){ e.preventDefault(); syncDraftFromForm(); handleSubmit(); });
+  var first = document.getElementById("hero-name"); if(first && step===0) { /* keep focus gentle on desktop */ }
+}
+function syncOne(el){
+  var field = el.getAttribute("data-field");
+  var type = el.getAttribute("data-type");
+  if(type==="number"){ var n = Number(el.value); draft[field] = isNaN(n)?0:n; }
+  else if(type==="checkbox"){ draft[field] = el.checked; }
+  else { draft[field] = el.value; }
+}
+function syncDraftFromForm(){
+  app.querySelectorAll("[data-field]").forEach(function(el){ syncOne(el); });
+}
+
+function storyBlock(title, value){
+  return '<section class="story-block"><h3>'+esc(title)+'</h3><p class="'+(value?"":"muted-value")+'">'+esc(value||"Not written yet")+'</p></section>';
+}
+
+function renderSheet(){
+  var characters = getCharacters();
+  var selected = null;
+  for(var i=0;i<characters.length;i++) if(String(characters[i].id)===String(selectedId)) selected = characters[i];
+  if(!selected){ screen="roster"; renderRoster(); return; }
+  var abilities = [["Strength",selected.strength],["Dexterity",selected.dexterity],["Constitution",selected.constitution],["Intelligence",selected.intelligence],["Wisdom",selected.wisdom],["Charisma",selected.charisma]];
+  var html = "";
+  html += '<div class="subpage-top"><button class="back-button" type="button" id="btn-to-roster">← Party</button><span class="step-label">Saved '+esc(shortDate(selected.updatedAt))+'</span></div>';
+  html += '<section class="sheet-head"><div class="sheet-headline"><div class="character-sigil" aria-hidden="true">'+esc((selected.name||"?").slice(0,1).toUpperCase())+'</div><div><p class="sheet-kicker">'+(selected.ready?"Ready for adventure":"Still taking shape")+'</p><h1>'+esc(selected.name)+'</h1><p class="sheet-subtitle">Level '+selected.level+' '+(selected.ancestry?esc(selected.ancestry)+" ":"")+esc(selected.characterClass)+(selected.playerName?" · played by "+esc(selected.playerName):"")+'</p></div></div><div class="sheet-actions"><button class="primary-button" type="button" id="btn-edit">Edit character</button></div></section>';
+  html += '<div class="vital-strip" aria-label="Character vitals"><div class="vital"><b>'+selected.hitPoints+'</b><span>Hit points</span></div><div class="vital"><b>'+selected.armor+'</b><span>Armor</span></div><div class="vital"><b>'+selected.speed+'</b><span>Speed</span></div></div>';
+  html += '<div class="ability-grid" aria-label="Ability scores">';
+  abilities.forEach(function(a){ html += '<div class="ability"><b>'+a[1]+'</b><span>'+esc(a[0])+'<br />'+modifier(a[1])+'</span></div>'; });
+  html += '</div><div class="story-sections">';
+  html += storyBlock("Appearance", selected.appearance);
+  html += storyBlock("Background", selected.background);
+  html += storyBlock("Personality", selected.personality);
+  html += storyBlock("Goal", selected.goal);
+  html += storyBlock("Bond", selected.bond);
+  html += storyBlock("Flaw", selected.flaw);
+  html += storyBlock("Signature item", selected.signatureItem);
+  html += storyBlock("Backstory", selected.backstory);
+  html += storyBlock("Notes", selected.notes);
+  html += '</div>';
+  html += '<div class="delete-zone">';
+  if(!deleteArmed){
+    html += '<button class="text-button" type="button" id="btn-delete-arm">Delete character</button>';
+  } else {
+    html += '<div class="delete-confirm"><p>Remove '+esc(selected.name)+' from the party?</p><div><button class="text-button" type="button" id="btn-delete-keep">Keep</button><button class="danger-button" type="button" id="btn-delete-confirm">Delete</button></div></div>';
+  }
+  html += '</div>';
+  app.innerHTML = html;
+  document.getElementById("btn-to-roster").addEventListener("click", function(){ screen="roster"; render(); });
+  document.getElementById("btn-edit").addEventListener("click", function(){ startEdit(selected); });
+  var arm=document.getElementById("btn-delete-arm"); if(arm) arm.addEventListener("click", function(){ deleteArmed=true; render(); });
+  var keep=document.getElementById("btn-delete-keep"); if(keep) keep.addEventListener("click", function(){ deleteArmed=false; render(); });
+  var conf=document.getElementById("btn-delete-confirm"); if(conf) conf.addEventListener("click", function(){
+    var list = loadCharacters().filter(function(c){ return String(c.id)!==String(selected.id); });
+    saveCharacters(list);
+    selectedId=null; deleteArmed=false; screen="roster"; render();
+  });
+}
+
+function startCreate(){ editingId=null; draft=Object.assign({},EMPTY); step=0; formError=""; screen="form"; render(); window.scrollTo({top:0}); }
+function startEdit(character){
+  editingId = character.id;
+  var copy = Object.assign({}, character);
+  delete copy.id; delete copy.createdAt; delete copy.updatedAt;
+  draft = Object.assign({}, EMPTY, copy);
+  step=0; formError=""; screen="form"; render(); window.scrollTo({top:0});
+}
+function openSheet(id){ selectedId=id; deleteArmed=false; screen="sheet"; render(); window.scrollTo({top:0}); }
+function nextStep(){
+  if(step===0 && (!draft.name.trim() || !draft.characterClass.trim())){ formError="Give the hero a name and class before continuing."; render(); return; }
+  formError=""; step=Math.min(2, step+1); render(); window.scrollTo({top:0,behavior:"smooth"});
+}
+function clampDraft(){
+  function clampNum(v,min,max,fallback){ var n=Number(v); if(isNaN(n)) n=fallback; return Math.max(min, Math.min(max, Math.round(n))); }
+  draft.level = clampNum(draft.level,1,20,1);
+  ["strength","dexterity","constitution","intelligence","wisdom","charisma"].forEach(function(k){ draft[k]=clampNum(draft[k],1,30,10); });
+  draft.hitPoints = clampNum(draft.hitPoints,1,999,10);
+  draft.armor = clampNum(draft.armor,0,99,10);
+  draft.speed = clampNum(draft.speed,0,999,30);
+  ["name","playerName","pronouns","characterClass","ancestry","background","appearance","personality","bond","flaw","goal","signatureItem","backstory","notes"].forEach(function(k){ draft[k]=String(draft[k]||"").trim(); });
+  draft.ready = !!draft.ready;
+}
+function handleSubmit(){
+  if(step<2){ nextStep(); return; }
+  if(!draft.name.trim() || !draft.characterClass.trim()){ step=0; formError="Give the hero a name and class before saving."; render(); return; }
+  clampDraft();
+  var list = loadCharacters();
+  var now = new Date().toISOString();
+  if(editingId==null){
+    var created = Object.assign({}, draft, {id:newId(), createdAt:now, updatedAt:now});
+    list.push(created);
+    saveCharacters(list);
+    selectedId = created.id;
+  } else {
+    var found=null;
+    for(var i=0;i<list.length;i++){ if(String(list[i].id)===String(editingId)){ list[i]=Object.assign({}, list[i], draft, {updatedAt:now}); found=list[i]; break; } }
+    if(!found){ formError="The changes were not saved. Check the fields and try again."; render(); return; }
+    saveCharacters(list);
+    selectedId = editingId;
+  }
+  formError=""; screen="sheet"; deleteArmed=false; render(); window.scrollTo({top:0});
+}
+
+render();
+</script>
+</body>
+</html>
